@@ -1,6 +1,6 @@
 # Podscribe Conversion Tracking Template for Google Tag Manager
 
-![Podscribe Logo](template/logo.png)
+![Podscribe Logo]([https://images.squarespace-cdn.com/content/v1/60fd…40ef-a62c-7bce3e5850fa/Group+611.png?format=1500w])
 
 ## Overview
 
