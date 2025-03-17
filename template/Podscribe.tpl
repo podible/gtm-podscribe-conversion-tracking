@@ -32,9 +32,9 @@ ___TEMPLATE_PARAMETERS___
   {
     "type": "TEXT",
     "name": "advertiser",
-    "displayName": "Podscribe Advertiser",
+    "displayName": "Podscribe Advertiser (required)",
     "simpleValueType": true,
-    "help": "Enter your Podscribe advertiser name (provided by the Podscribe team). Contact adops@podscribe.com for assistance.",
+    "help": "Required: Enter your Podscribe advertiser name (provided by the Podscribe team). Contact adops@podscribe.com for assistance.",
     "valueHint": "advertiser123",
     "valueValidators": [
       {
@@ -45,7 +45,7 @@ ___TEMPLATE_PARAMETERS___
   {
     "type": "TEXT",
     "name": "user_id",
-    "displayName": "Podscribe User ID",
+    "displayName": "Podscribe User ID (required)",
     "simpleValueType": true,
     "help": "Enter your Podscribe User Id (provided by the Podscribe team). Contact adops@podscribe.com for assistance.",
     "valueHint": "xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -68,7 +68,7 @@ ___TEMPLATE_PARAMETERS___
   {
     "type": "SELECT",
     "name": "event_type",
-    "displayName": "Tracking Event Type",
+    "displayName": "Event Name (required)",
     "macrosInSelect": false,
     "selectItems": [
       {
@@ -89,8 +89,8 @@ ___TEMPLATE_PARAMETERS___
       }
     ],
     "simpleValueType": true,
-    "help": "Select the type of event or variable you want to track with this Podscribe pixel.  Values accepted are purchase, view, signup, or lead.",
-    "notSetText": "Assign variable or make selection.",
+    "help": "Required: Select the type of event or variable you want to track with this Podscribe pixel.  Values accepted are purchase, view, signup, or lead.",
+    "notSetText": "Choose an event below",
     "valueValidators": [
       {
         "type": "NON_EMPTY"
@@ -102,7 +102,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "hashed_email",
     "displayName": "User Hashed Email",
     "simpleValueType": true,
-    "help": "Hashed email address for purchase, signup, and lead events. For privacy, only use SHA-256 hashed values.",
+    "help": "The privacy-safe hashed email of the purchaser, hashed with MD5 (preferred) or SHA256. Lowercase and trim whitespace prior to hashing!",
     "enablingConditions": [
       {
         "paramName": "event_type",
@@ -132,60 +132,144 @@ ___TEMPLATE_PARAMETERS___
     "name": "device_id",
     "displayName": "Device ID",
     "simpleValueType": true,
-    "help": "Optional: Device ID for cross-page tracking. Leave blank to auto-generate.",
-    "valueHint": "{{user.device_id}}"
+    "help": "The unique identifier used to track this device (eg cookie) or user (if logged in and you have a user ID). Podscribe can then return this ID in reporting so you can know all exposures linked to your device (or user ID).",
+    "valueHint": "{{user.device_id}}",
+    "enablingConditions": [
+      {
+        "paramName": "event_type",
+        "paramValue": "",
+        "type": "PRESENT"
+      }
+    ]
+  },
+  {
+    "type": "TEXT",
+    "name": "value",
+    "displayName": "Revenue Value",
+    "simpleValueType": true,
+    "enablingConditions": [
+      {
+        "paramName": "event_type",
+        "paramValue": "purchase",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "signup",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "lead",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "",
+        "type": "IS_MACRO_REFERENCE"
+      }
+    ],
+    "help": "The total purchase amount (USD)",
+    "valueHint": "{{revenue_value}}"
+  },
+  {
+    "type": "TEXT",
+    "name": "order_number",
+    "displayName": "Order Number",
+    "simpleValueType": true,
+    "enablingConditions": [
+      {
+        "paramName": "event_type",
+        "paramValue": "purchase",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "lead",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "signup",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "",
+        "type": "IS_MACRO_REFERENCE"
+      }
+    ],
+    "help": "The order ID",
+    "valueHint": "{{order_number}}"
+  },
+  {
+    "type": "TEXT",
+    "name": "discount_code",
+    "displayName": "Discount Code",
+    "simpleValueType": true,
+    "enablingConditions": [
+      {
+        "paramName": "event_type",
+        "paramValue": "purchase",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "signup",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "lead",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "",
+        "type": "IS_MACRO_REFERENCE"
+      }
+    ],
+    "help": "The discount code entered",
+    "valueHint": "{{coupon_code}}"
   },
   {
     "type": "GROUP",
-    "name": "event_settings",
-    "displayName": "Event Settings",
+    "name": "more_fields",
+    "displayName": "More Fields",
     "subParams": [
       {
         "type": "TEXT",
-        "name": "value",
-        "displayName": "Revenue Value",
+        "name": "num_items",
+        "displayName": "Item Quantity",
         "simpleValueType": true,
-        "help": "The monetary value of the purchase, or commerce item.",
-        "valueHint": "{{revenue_value}}",
-        "enablingConditions": [
-          {
-            "paramName": "event_type",
-            "paramValue": "purchase",
-            "type": "EQUALS"
-          },
-          {
-            "paramName": "event_type",
-            "paramValue": "lead",
-            "type": "EQUALS"
-          },
-          {
-            "paramName": "event_type",
-            "paramValue": "signup",
-            "type": "EQUALS"
-          },
-          {
-            "paramName": "event_type",
-            "paramValue": "",
-            "type": "IS_MACRO_REFERENCE"
-          }
-        ]
+        "help": "Number of items in order",
+        "valueHint": "{{item_quantity}}",
+        "enablingConditions": []
       },
       {
         "type": "TEXT",
-        "name": "order_number",
-        "displayName": "Order Number",
+        "name": "is_new_customer",
+        "displayName": "New Customer Flag",
         "simpleValueType": true,
         "enablingConditions": [],
-        "help": "The order or transaction ID.",
-        "valueHint": "{{order_number}}"
+        "help": "Set to true if the customer is new. false otherwise",
+        "valueHint": "{{is_new_customer}}"
       },
       {
         "type": "TEXT",
-        "name": "discount_code",
-        "displayName": "Discount Code",
+        "name": "is_subscription",
+        "displayName": "Is Subscription Flag",
         "simpleValueType": true,
-        "valueHint": "{{coupon_code}}",
-        "help": "The discount or promo code used."
+        "valueHint": "{{is_subscription}}",
+        "help": "Set to true if the customer has signed up for a recurring subscription. false otherwise."
+      },
+      {
+        "type": "TEXT",
+        "name": "currency",
+        "displayName": "Currency",
+        "simpleValueType": true,
+        "valueHint": "{{currency}}",
+        "help": "The currency the purchase amount is in. Defaults to USD"
       },
       {
         "type": "TEXT",
@@ -196,7 +280,7 @@ ___TEMPLATE_PARAMETERS___
         "help": "The product or service name the user signed up for or expressed interest in."
       }
     ],
-    "groupStyle": "ZIPPY_OPEN",
+    "groupStyle": "ZIPPY_CLOSED",
     "enablingConditions": [
       {
         "paramName": "event_type",
@@ -500,6 +584,6 @@ setup: |-
 
 ___NOTES___
 
-Created on 3/14/2025, 11:01:00 AM
+Created on 3/17/2025, 1:37:38 PM
 
 
