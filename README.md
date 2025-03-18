@@ -1,10 +1,10 @@
 # Podscribe Conversion Tracking Template for Google Tag Manager
 
-![Podscribe Logo](https://images.squarespace-cdn.com/content/v1/60fd40ef-a62c-7bce3e5850fa/Group+611.png)
+![Podscribe Logo](https://images.squarespace-cdn.com/content/v1/60fdad6fb704f7471c09aed5/5f3574f3-02e7-40ef-a62c-7bce3e5850fa/Group+611.png?format=1500w)
 
 ## Overview
 
-The Podscribe Conversion Tracking Template for Google Tag Manager enables advertisers to implement attribution for podcast advertising campaigns. This template provides a straightforward method to track website conversions and attribute them to podcast ad exposures through Podscribe's attribution platform.
+The Podscribe Tag Template for Google Tag Manager enables advertisers to implement attribution for podcast advertising campaigns. This template provides a straightforward method to track website conversions and attribute them to podcast ad exposures through Podscribe's attribution platform.
 
 ## Features
 
@@ -27,7 +27,7 @@ The Podscribe Conversion Tracking Template for Google Tag Manager enables advert
 1. In Google Tag Manager, navigate to **Templates**
 2. Click **Search Gallery** in the Tag Templates section
 3. Search for "Podscribe"
-4. Click on the Podscribe Conversion Tracking template
+4. Click on the Podscribe template
 5. Click **Add to workspace**
 
 ### Manual Installation
