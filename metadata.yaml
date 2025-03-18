@@ -1,5 +1,5 @@
 homepage: "https://podscribe.com"
 documentation: "https://github.com/podible/gtm-podscribe-conversion-tracking"
 versions:
-  - sha: [current commit SHA]
+  - sha: ac24345ce85dfe56c7240914b7257278fdfed2a9
     changeNotes: Initial release of Podscribe conversion tracking template.
