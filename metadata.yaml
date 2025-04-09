@@ -1,6 +1,6 @@
 homepage: "https://podscribe.com"
 documentation: "https://help.podscribe.com/sending-podscribe-conversion-events-/g4g8w3hppouCfkXZdcx6FV/sending-events-via-google-tag-manager-gtm/3mDBt8JpG3wncH11tpMVZw"
 versions:
-  - sha: c376bd2417fee52b05131e6f7d302ea7067a1d91
+  - sha: c69901f2aec604fa3aa6aef65e864576f7560396
     version: 1.0.0
     changeNotes: Initial release of Podscribe conversion tag template.
