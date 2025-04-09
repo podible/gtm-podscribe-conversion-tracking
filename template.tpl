@@ -1,12 +1,4 @@
-﻿___TERMS_OF_SERVICE___
-
-By creating or modifying this file you agree to Google Tag Manager's Community
-Template Gallery Developer Terms of Service available at
-https://developers.google.com/tag-manager/gallery-tos (or such other URL as
-Google may provide), as modified from time to time.
-
-
-___INFO___
+﻿___INFO___
 
 {
   "type": "TAG",
@@ -35,7 +27,7 @@ ___TEMPLATE_PARAMETERS___
     "displayName": "Podscribe Advertiser (required)",
     "simpleValueType": true,
     "help": "Required: Enter your Podscribe advertiser name (provided by the Podscribe team). Contact adops@podscribe.com for assistance.",
-    "valueHint": "advertiser123",
+    "valueHint": "advertiser",
     "valueValidators": [
       {
         "type": "NON_EMPTY"
@@ -125,7 +117,7 @@ ___TEMPLATE_PARAMETERS___
         "type": "EQUALS"
       }
     ],
-    "valueHint": "{{user.hased_email}}"
+    "valueHint": "4093f4f12ec20fbcc8879f98a59b8894"
   },
   {
     "type": "TEXT",
@@ -133,7 +125,7 @@ ___TEMPLATE_PARAMETERS___
     "displayName": "Device ID",
     "simpleValueType": true,
     "help": "The unique identifier used to track this device (eg cookie) or user (if logged in and you have a user ID). Podscribe can then return this ID in reporting so you can know all exposures linked to your device (or user ID).",
-    "valueHint": "{{user.device_id}}",
+    "valueHint": "bc10665e-b527-4b20-ba0f",
     "enablingConditions": [
       {
         "paramName": "event_type",
@@ -155,22 +147,12 @@ ___TEMPLATE_PARAMETERS___
       },
       {
         "paramName": "event_type",
-        "paramValue": "signup",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "lead",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
         "paramValue": "",
         "type": "IS_MACRO_REFERENCE"
       }
     ],
     "help": "The total purchase amount (USD)",
-    "valueHint": "{{revenue_value}}"
+    "valueHint": "53.21"
   },
   {
     "type": "TEXT",
@@ -185,22 +167,12 @@ ___TEMPLATE_PARAMETERS___
       },
       {
         "paramName": "event_type",
-        "paramValue": "lead",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "signup",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
         "paramValue": "",
         "type": "IS_MACRO_REFERENCE"
       }
     ],
     "help": "The order ID",
-    "valueHint": "{{order_number}}"
+    "valueHint": "order_1234"
   },
   {
     "type": "TEXT",
@@ -215,22 +187,12 @@ ___TEMPLATE_PARAMETERS___
       },
       {
         "paramName": "event_type",
-        "paramValue": "signup",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "lead",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
         "paramValue": "",
         "type": "IS_MACRO_REFERENCE"
       }
     ],
     "help": "The discount code entered",
-    "valueHint": "{{coupon_code}}"
+    "valueHint": "daily12"
   },
   {
     "type": "GROUP",
@@ -243,41 +205,68 @@ ___TEMPLATE_PARAMETERS___
         "displayName": "Item Quantity",
         "simpleValueType": true,
         "help": "Number of items in order",
-        "valueHint": "{{item_quantity}}",
-        "enablingConditions": []
+        "valueHint": "2",
+        "enablingConditions": [
+          {
+            "paramName": "event_type",
+            "paramValue": "purchase",
+            "type": "EQUALS"
+          }
+        ]
       },
       {
         "type": "TEXT",
         "name": "is_new_customer",
         "displayName": "New Customer Flag",
         "simpleValueType": true,
-        "enablingConditions": [],
+        "enablingConditions": [
+          {
+            "paramName": "event_type",
+            "paramValue": "purchase",
+            "type": "EQUALS"
+          }
+        ],
         "help": "Set to true if the customer is new. false otherwise",
-        "valueHint": "{{is_new_customer}}"
+        "valueHint": "true"
       },
       {
         "type": "TEXT",
         "name": "is_subscription",
         "displayName": "Is Subscription Flag",
         "simpleValueType": true,
-        "valueHint": "{{is_subscription}}",
-        "help": "Set to true if the customer has signed up for a recurring subscription. false otherwise."
+        "valueHint": "true",
+        "help": "Set to true if the customer has signed up for a recurring subscription. false otherwise.",
+        "enablingConditions": [
+          {
+            "paramName": "event_type",
+            "paramValue": "purchase",
+            "type": "EQUALS"
+          }
+        ]
       },
       {
         "type": "TEXT",
         "name": "currency",
         "displayName": "Currency",
         "simpleValueType": true,
-        "valueHint": "{{currency}}",
-        "help": "The currency the purchase amount is in. Defaults to USD"
+        "valueHint": "USD",
+        "help": "The currency the purchase amount is in. Defaults to USD",
+        "enablingConditions": [
+          {
+            "paramName": "event_type",
+            "paramValue": "purchase",
+            "type": "EQUALS"
+          }
+        ]
       },
       {
         "type": "TEXT",
         "name": "product",
-        "displayName": "Product or Service",
+        "displayName": "Product name",
         "simpleValueType": true,
-        "valueHint": "{{product.item}}",
-        "help": "The product or service name the user signed up for or expressed interest in."
+        "valueHint": "Great Product",
+        "help": "The product name, comma-separated if multiple. Podscribe can return the product name for every attributed purchase, along with Order ID and other associated fields.",
+        "enablingConditions": []
       }
     ],
     "groupStyle": "ZIPPY_CLOSED",
@@ -315,108 +304,174 @@ ___SANDBOXED_JS_FOR_WEB_TEMPLATE___
  * This template allows advertisers to implement Podscribe conversion tracking
  * for various event types: pageviews, purchases, signups, and leads.
  * 
+ * @param {string} user_id - Podscribe User ID (required)
+ * @param {string} advertiser - Advertiser Name (required)
+ * @param {string} event_type - Event Type: view, purchase, signup, or lead (default: view)
+ * @param {string} device_id - Optional device identifier
+ * @param {string} value - Transaction value (for purchase events)
+ * @param {string} order_number - Order/transaction ID (for purchase events)
+ * @param {string} discount_code - Discount/promo code used (for purchase events)
+ * @param {string} hashed_email - Hashed email address
+ * @param {string} lead_type - Type of lead (for lead events)
+ * @param {string} signup_type - Type of signup (for signup events)
+ * @param {string} num_items - Number of items in order
+ * @param {string} is_new_customer - Set to true if the customer is new
+ * @param {string} is_subscription - Set to true if the customer signed up for a recurring subscription
+ * @param {string} currency - The currency code (defaults to USD)
+ * @param {string} product - The product or service name
+ * 
  * @version 1.0.0
  */
 
-const sendPixel = require('sendPixel');
-const encodeUriComponent = require('encodeUriComponent');
-const getUrl = require('getUrl');
-const getReferrerUrl = require('getReferrerUrl');
-const generateRandom = require('generateRandom');
-const getTimestampMillis = require('getTimestampMillis');
-const parseUrl = require('parseUrl');
-const copyFromDataLayer = require('copyFromDataLayer');
+const log = require('logToConsole');
+const injectScript = require('injectScript');
+const makeString = require('makeString');
+const copyFromWindow = require('copyFromWindow');
+const setInWindow = require('setInWindow');
+const createQueue = require('createQueue');
 
-// Config variables from template fields using the exact field names from the interface
-const advertiser = data.advertiser || "";
-const user_id = data.user_id || "";  // Using snake_case to match website data
-const event_type = data.event_type || "pageview";  // Using snake_case to match website data
-const pixelEndpoint = "https://verifi.podscribe.com/tag";
+// Define constants
+const SCRIPT_URL = 'https://d34r8q7sht0t9k.cloudfront.net/tag.js';
+const SCRIPT_ID = 'podscribe-capture';
 
-/**
- * Generates a unique device ID without using cookies
- * Format: pod + timestamp + random number
- */
-function generateDeviceId() {
-  return 'pod' + getTimestampMillis() + generateRandom(1000, 9999);
-}
+// Access all user inputs from the template fields
+const user_id = makeString(data.user_id || '');
+const advertiser = makeString(data.advertiser || '');
+const event_type = makeString(data.event_type || 'view');
+const device_id = makeString(data.device_id || '');
 
-/**
- * Collects basic page data for tracking
- * Returns object with referrer, landing URL, and current URL
- */
-function getPageData() {
-  const pageUrl = getUrl();
-  const pageReferrer = getReferrerUrl() || "";
-  const parsedUrl = parseUrl(pageUrl);
+// Optional event-specific parameters
+const value = data.value ? makeString(data.value) : '';
+const order_number = data.order_number ? makeString(data.order_number) : '';
+const discount_code = data.discount_code ? makeString(data.discount_code) : '';
+const hashed_email = data.hashed_email ? makeString(data.hashed_email) : '';
+const lead_type = data.lead_type ? makeString(data.lead_type) : '';
+const signup_type = data.signup_type ? makeString(data.signup_type) : '';
+
+// Additional parameters from template
+const num_items = data.num_items ? makeString(data.num_items) : '';
+const is_new_customer = data.is_new_customer ? makeString(data.is_new_customer) : '';
+const is_subscription = data.is_subscription ? makeString(data.is_subscription) : '';
+const currency = data.currency ? makeString(data.currency) : '';
+const product = data.product ? makeString(data.product) : '';
+
+// Main function to run podscribe commands
+const executePodscribe = () => {
+  // First check if podscribe exists
+  const podscribe = copyFromWindow('podscribe');
   
-  return {
-    referrer: pageReferrer,
-    landingUrl: pageUrl,
-    url: pageUrl,
-    hostname: parsedUrl.hostname
-  };
-}
+  if (!podscribe) {
+    log('ERROR: podscribe not available');
+    return false;
+  }
+  
+  if (typeof podscribe !== 'function') {
+    log('ERROR: podscribe is not a function: ' + typeof podscribe);
+    return false;
+  }
+  
+  // Call init first
+  podscribe('init', {
+    user_id: user_id,
+    advertiser: advertiser
+  });
+  
+  // Now call the appropriate event based on event_type
+  switch(event_type) {
+    case 'view': {
+      const viewParams = {};
+      if (device_id) viewParams.device_id = device_id;
+      if (hashed_email) viewParams.hashed_email = hashed_email;
+      
+      podscribe('view', viewParams);
+      break;
+    }
+      
+    case 'purchase': {
+      const purchaseParams = {};
+      // Add base parameters
+      if (device_id) purchaseParams.device_id = device_id;
+      if (hashed_email) purchaseParams.hashed_email = hashed_email;
+      
+      // Add purchase-specific parameters
+      if (value) purchaseParams.value = value;
+      if (order_number) purchaseParams.order_number = order_number;
+      if (discount_code) purchaseParams.discount_code = discount_code;
+      
+      // Add additional parameters from template
+      if (num_items) purchaseParams.num_items = num_items;
+      if (is_new_customer) purchaseParams.is_new_customer = is_new_customer;
+      if (is_subscription) purchaseParams.is_subscription = is_subscription;
+      if (currency) purchaseParams.currency = currency;
+      if (product) purchaseParams.product = product;
+      
+      podscribe('purchase', purchaseParams);
+      break;
+    }
+      
+    case 'signup': {
+      const signupParams = {};
+      // Add base parameters
+      if (device_id) signupParams.device_id = device_id;
+      if (hashed_email) signupParams.hashed_email = hashed_email;
+      
+      // Add signup-specific parameters
+      if (signup_type) signupParams.signup_type = signup_type;
+      
+      // Add relevant additional parameters
+      if (is_subscription) signupParams.is_subscription = is_subscription;
+      if (product) signupParams.product = product;
+      if (is_new_customer) signupParams.is_new_customer = is_new_customer;
+      
+      podscribe('signup', signupParams);
+      break;
+    }
+      
+    case 'lead': {
+      const leadParams = {};
+      // Add base parameters
+      if (device_id) leadParams.device_id = device_id;
+      if (hashed_email) leadParams.hashed_email = hashed_email;
+      
+      // Add lead-specific parameters
+      if (lead_type) leadParams.lead_type = lead_type;
+      
+      // Add relevant additional parameters
+      if (product) leadParams.product = product;
+      if (is_new_customer) leadParams.is_new_customer = is_new_customer;
+      
+      podscribe('lead', leadParams);
+      break;
+    }
+      
+    default:
+      log('WARNING: Unknown event type: ' + event_type);
+      return false;
+  }
+  
+  return true;
+};
 
-// Get device ID and page data once
-const deviceId = data.device_id || generateDeviceId();
-const pageData = getPageData();
+// Function to handle script load success
+const onSuccess = () => {
+  // Execute the main functionality
+  const result = executePodscribe();
+  
+  if (result) {
+    data.gtmOnSuccess();
+  } else {
+    data.gtmOnFailure();
+  }
+};
 
-// Check data layer for additional context (retained for future use)
-const dataLayerInfo = copyFromDataLayer('page') || {};
+// Function to handle script load failure
+const onFailure = () => {
+  log('ERROR: Podscribe script failed to load');
+  data.gtmOnFailure();
+};
 
-// Build base query string with common parameters used in all events
-const baseQueryString = 
-  "&user_id=" + encodeUriComponent(user_id) +
-  "&advertiser=" + encodeUriComponent(advertiser) +
-  "&referrer=" + encodeUriComponent(pageData.referrer || "") +
-  "&device_id=" + encodeUriComponent(deviceId) +
-  "&url=" + encodeUriComponent(pageData.landingUrl || "") +
-  "&event_url=" + encodeUriComponent(pageData.url || "") +
-  "&source=gtm";
-
-/**
- * Sends a pixel for the specified action with additional parameters
- */
-function sendPodscribePixel(action, additionalQueryString) {
-  const queryString = "action=" + action + baseQueryString + (additionalQueryString || "");
-  const pixelUrl = pixelEndpoint + "?" + queryString;
-  
-  sendPixel(
-    pixelUrl, 
-    function() { data.gtmOnSuccess(); }, 
-    function() { data.gtmOnSuccess(); }
-  );
-}
-
-// Process based on event type
-if (event_type === 'pageview' || event_type === 'view') {
-  // Page view tracking (always uses action=view)
-  sendPodscribePixel('view', '');
-  
-} else if (event_type === 'purchase') {
-  // Purchase conversion tracking
-  const purchaseParams = 
-    "&value=" + encodeUriComponent(data.value || 0) +
-    "&order_number=" + encodeUriComponent(data.order_number || '') +
-    "&discount_code=" + encodeUriComponent(data.discount_code || '') +
-    "&hashed_email=" + encodeUriComponent(data.hashed_email || '');
-  
-  sendPodscribePixel('purchase', purchaseParams);
-  
-} else if (event_type === 'signup' || event_type === 'lead') {
-  // Signup and lead tracking (consolidated)
-  const leadSignupParams = 
-    "&hashed_email=" + encodeUriComponent(data.hashed_email || '') +
-    "&product=" + encodeUriComponent(data.product || '');
-  
-  // Use the actual event type as the action
-  sendPodscribePixel(event_type, leadSignupParams);
-  
-} else {
-  // Unknown event type
-  data.gtmOnSuccess();
-}
+// Inject the Podscribe script
+injectScript(SCRIPT_URL, onSuccess, onFailure, SCRIPT_ID);
 
 
 ___WEB_PERMISSIONS___
@@ -425,53 +480,53 @@ ___WEB_PERMISSIONS___
   {
     "instance": {
       "key": {
-        "publicId": "get_referrer",
+        "publicId": "access_globals",
         "versionId": "1"
       },
       "param": [
         {
-          "key": "urlParts",
-          "value": {
-            "type": 1,
-            "string": "any"
-          }
-        },
-        {
-          "key": "queriesAllowed",
-          "value": {
-            "type": 1,
-            "string": "any"
-          }
-        }
-      ]
-    },
-    "clientAnnotations": {
-      "isEditedByUser": true
-    },
-    "isRequired": true
-  },
-  {
-    "instance": {
-      "key": {
-        "publicId": "send_pixel",
-        "versionId": "1"
-      },
-      "param": [
-        {
-          "key": "allowedUrls",
-          "value": {
-            "type": 1,
-            "string": "specific"
-          }
-        },
-        {
-          "key": "urls",
+          "key": "keys",
           "value": {
             "type": 2,
             "listItem": [
               {
-                "type": 1,
-                "string": "https://verifi.podscribe.com/*"
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "podscribe"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
               }
             ]
           }
@@ -486,43 +541,38 @@ ___WEB_PERMISSIONS___
   {
     "instance": {
       "key": {
-        "publicId": "get_url",
+        "publicId": "logging",
         "versionId": "1"
       },
       "param": [
         {
-          "key": "urlParts",
+          "key": "environments",
           "value": {
             "type": 1,
-            "string": "any"
-          }
-        },
-        {
-          "key": "queriesAllowed",
-          "value": {
-            "type": 1,
-            "string": "any"
+            "string": "debug"
           }
         }
       ]
-    },
-    "clientAnnotations": {
-      "isEditedByUser": true
     },
     "isRequired": true
   },
   {
     "instance": {
       "key": {
-        "publicId": "read_data_layer",
+        "publicId": "inject_script",
         "versionId": "1"
       },
       "param": [
         {
-          "key": "allowedKeys",
+          "key": "urls",
           "value": {
-            "type": 1,
-            "string": "any"
+            "type": 2,
+            "listItem": [
+              {
+                "type": 1,
+                "string": "https://d34r8q7sht0t9k.cloudfront.net/*"
+              }
+            ]
           }
         }
       ]
@@ -537,43 +587,7 @@ ___WEB_PERMISSIONS___
 
 ___TESTS___
 
-scenarios:
-- name: View Event Test
-  code: "const testViewEvent = {\n  // Mock data input values\n  mock: function(name)\
-    \ {\n    const testData = {\n      user_id: 'test-user-123',\n      advertiser:\
-    \ 'testadvertiser123',\n      device_id: 'device-abc-xyz',\n      event_type:\
-    \ 'view',\n      gtmOnSuccess: function() {},\n      gtmOnFailure: function()\
-    \ {}\n    };\n    \n    return testData[name];\n  },\n  \n  // Test assertions\n\
-    \  assertions: [\n    {\n      actual: 'injectScript',\n      expected: 'https://d34r8q7sht0t9k.cloudfront.net/tag.js'\n\
-    \    }\n  ]\n};"
-- name: Purchase Event Test
-  code: "const testPurchaseEvent = {\n  // Mock data input values\n  mock: function(name)\
-    \ {\n    const testData = {\n      user_id: 'test-user-456',\n      advertiser:\
-    \ 'test-advertiser',\n      device_id: 'device-def-uvw',\n      event_type: 'purchase',\n\
-    \      value: '29.99',\n      order_number: 'ORDER-12345',\n      discount_code:\
-    \ 'SAVE10',\n      hashed_email: 'a1b2c3d4e5f6',\n      gtmOnSuccess: function()\
-    \ {},\n      gtmOnFailure: function() {}\n    };\n    \n    return testData[name];\n\
-    \  },\n  \n  // Test assertions\n  assertions: [\n    {\n      actual: 'injectScript',\n\
-    \      expected: 'https://d34r8q7sht0t9k.cloudfront.net/tag.js'\n    }\n  ]\n\
-    };"
-- name: Signup Test
-  code: "// Test Case 3: Signup event\nconst testSignupEvent = {\n  // Mock data input\
-    \ values\n  mock: function(name) {\n    const testData = {\n      user_id: 'test-user-789',\n\
-    \      advertiser: 'test-advertiser',\n      device_id: 'device-ghi-jkl',\n  \
-    \    event_type: 'signup',\n      hashed_email: 'f7e6d5c4b3a2',\n      product:\
-    \ 'premium-subscription',\n      gtmOnSuccess: function() {},\n      gtmOnFailure:\
-    \ function() {}\n    };\n    \n    return testData[name];\n  },\n  \n  // Test\
-    \ assertions\n  assertions: [\n    {\n      actual: 'injectScript',\n      expected:\
-    \ 'https://d34r8q7sht0t9k.cloudfront.net/tag.js'\n    }\n  ]\n};\n"
-- name: Lead Test
-  code: "const testLeadEvent = {\n  // Mock data input values\n  mock: function(name)\
-    \ {\n    const testData = {\n      user_id: 'test-user-101',\n      advertiser:\
-    \ 'test-advertiser',\n      device_id: 'device-mno-pqr',\n      event_type: 'lead',\n\
-    \      hashed_email: '1a2b3c4d5e6f',\n      product: 'demo-request',\n      gtmOnSuccess:\
-    \ function() {},\n      gtmOnFailure: function() {}\n    };\n    \n    return\
-    \ testData[name];\n  },\n  \n  // Test assertions\n  assertions: [\n    {\n  \
-    \    actual: 'injectScript',\n      expected: 'https://d34r8q7sht0t9k.cloudfront.net/tag.js'\n\
-    \    }\n  ]\n};"
+scenarios: []
 setup: |-
   if (typeof mock === 'function') {
     mock('injectScript', (url, onSuccess) => { onSuccess(); });
