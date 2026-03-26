@@ -31,17 +31,17 @@ jobs:
 
               console.log(`Closing PR #${pr.number}: "${pr.title}" (last activity ${pr.updated_at})`);
 
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: pr.number,
-                body: '🤖 This PR was automatically closed because it had no activity for more than 7 days.',
-              });
-
               await github.rest.pulls.update({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: pr.number,
                 state: 'closed',
+              });
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: '🤖 This PR was automatically closed because it had no activity for more than 7 days.',
               });
             }
