@@ -206,53 +206,6 @@ ___TEMPLATE_PARAMETERS___
     "valueHint": "daily12"
   },
   {
-    "type": "SIMPLE_TABLE",
-    "name": "custom_params",
-    "displayName": "Custom Parameters",
-    "simpleTableColumns": [
-      {
-        "defaultValue": "",
-        "displayName": "Name",
-        "name": "name",
-        "type": "TEXT",
-        "valueValidators": [
-          {
-            "type": "NON_EMPTY"
-          }
-        ]
-      },
-      {
-        "defaultValue": "",
-        "displayName": "Value",
-        "name": "value",
-        "type": "TEXT"
-      }
-    ],
-    "help": "Optional: additional arbitrary key / value pairs to forward to Podscribe. Use this for fields the template doesn't expose directly. Not supported on view events (the Podscribe js-tag pixel drops custom params on view).",
-    "enablingConditions": [
-      {
-        "paramName": "event_type",
-        "paramValue": "purchase",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "",
-        "type": "IS_MACRO_REFERENCE"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "signup",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "lead",
-        "type": "EQUALS"
-      }
-    ]
-  },
-  {
     "type": "GROUP",
     "name": "more_fields",
     "displayName": "More Fields",
@@ -356,6 +309,31 @@ ___TEMPLATE_PARAMETERS___
         "simpleValueType": true,
         "valueHint": "Great Product",
         "help": "The product name, comma-separated if multiple. Podscribe can return the product name for every attributed purchase, along with Order ID and other associated fields."
+      },
+      {
+        "type": "SIMPLE_TABLE",
+        "name": "custom_params",
+        "displayName": "Custom Parameters",
+        "simpleTableColumns": [
+          {
+            "defaultValue": "",
+            "displayName": "Name",
+            "name": "name",
+            "type": "TEXT",
+            "valueValidators": [
+              {
+                "type": "NON_EMPTY"
+              }
+            ]
+          },
+          {
+            "defaultValue": "",
+            "displayName": "Value",
+            "name": "value",
+            "type": "TEXT"
+          }
+        ],
+        "help": "Optional: additional arbitrary key / value pairs to forward to Podscribe. Use this for fields the template doesn't expose directly. Not supported on view events (the Podscribe js-tag pixel drops custom params on view)."
       }
     ],
     "groupStyle": "ZIPPY_CLOSED",
