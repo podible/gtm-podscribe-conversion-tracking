@@ -220,11 +220,6 @@ ___TEMPLATE_PARAMETERS___
         "enablingConditions": [
           {
             "paramName": "event_type",
-            "paramValue": "view",
-            "type": "EQUALS"
-          },
-          {
-            "paramName": "event_type",
             "paramValue": "signup",
             "type": "EQUALS"
           },
@@ -243,11 +238,6 @@ ___TEMPLATE_PARAMETERS___
         "help": "The discount / promo code entered (same as the purchase Discount Code field).",
         "valueHint": "daily12",
         "enablingConditions": [
-          {
-            "paramName": "event_type",
-            "paramValue": "view",
-            "type": "EQUALS"
-          },
           {
             "paramName": "event_type",
             "paramValue": "signup",
@@ -270,32 +260,12 @@ ___TEMPLATE_PARAMETERS___
         "enablingConditions": [
           {
             "paramName": "event_type",
-            "paramValue": "view",
-            "type": "EQUALS"
-          },
-          {
-            "paramName": "event_type",
             "paramValue": "signup",
             "type": "EQUALS"
           },
           {
             "paramName": "event_type",
             "paramValue": "lead",
-            "type": "EQUALS"
-          }
-        ]
-      },
-      {
-        "type": "TEXT",
-        "name": "hashed_email_ext",
-        "displayName": "User Hashed Email",
-        "simpleValueType": true,
-        "help": "The privacy-safe hashed email (MD5 preferred, or SHA256). Lowercase and trim whitespace prior to hashing.",
-        "valueHint": "4093f4f12ec20fbcc8879f98a59b8894",
-        "enablingConditions": [
-          {
-            "paramName": "event_type",
-            "paramValue": "view",
             "type": "EQUALS"
           }
         ]
@@ -343,11 +313,6 @@ ___TEMPLATE_PARAMETERS___
     ],
     "groupStyle": "ZIPPY_CLOSED",
     "enablingConditions": [
-      {
-        "paramName": "event_type",
-        "paramValue": "view",
-        "type": "EQUALS"
-      },
       {
         "paramName": "event_type",
         "paramValue": "purchase",
@@ -418,15 +383,16 @@ const event_type = makeString(data.event_type || 'view');
 const device_id = makeString(data.device_id || '');
 
 // Optional event-specific parameters.
-// value / order_number / discount_code / hashed_email are exposed in two
-// template locations: top-level (for purchase / the original event types)
-// and inside the More Fields group with a "_ext" suffix (for other events,
-// since GTM requires globally unique parameter names). Coalesce here so the
-// rest of the script can treat them uniformly.
+// value / order_number / discount_code are exposed in two template locations:
+// top-level (for purchase — the original location) and inside the More Fields
+// group with a "_ext" suffix (for signup / lead, since GTM requires globally
+// unique parameter names). Coalesce here so the rest of the script can treat
+// them uniformly. View events intentionally do not expose these fields — the
+// js-tag pixel drops custom params on view, so adding UI would be misleading.
 const value = makeString(data.value || data.value_ext || '');
 const order_number = makeString(data.order_number || data.order_number_ext || '');
 const discount_code = makeString(data.discount_code || data.discount_code_ext || '');
-const hashed_email = makeString(data.hashed_email || data.hashed_email_ext || '');
+const hashed_email = data.hashed_email ? makeString(data.hashed_email) : '';
 const lead_type = data.lead_type ? makeString(data.lead_type) : '';
 const signup_type = data.signup_type ? makeString(data.signup_type) : '';
 
