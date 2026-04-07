@@ -109,6 +109,11 @@ ___TEMPLATE_PARAMETERS___
     "enablingConditions": [
       {
         "paramName": "event_type",
+        "paramValue": "view",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
         "paramValue": "purchase",
         "type": "EQUALS"
       },
@@ -146,128 +151,48 @@ ___TEMPLATE_PARAMETERS___
     ]
   },
   {
-    "type": "TEXT",
-    "name": "value",
-    "displayName": "Revenue Value",
-    "simpleValueType": true,
-    "enablingConditions": [
-      {
-        "paramName": "event_type",
-        "paramValue": "purchase",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "",
-        "type": "IS_MACRO_REFERENCE"
-      }
-    ],
-    "help": "The total purchase amount (USD)",
-    "valueHint": "53.21"
-  },
-  {
-    "type": "TEXT",
-    "name": "order_number",
-    "displayName": "Order Number",
-    "simpleValueType": true,
-    "enablingConditions": [
-      {
-        "paramName": "event_type",
-        "paramValue": "purchase",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "view",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "signup",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "lead",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "",
-        "type": "IS_MACRO_REFERENCE"
-      }
-    ],
-    "help": "The order ID. Available on all event types; used in reporting and as a deduplication key.",
-    "valueHint": "order_1234"
-  },
-  {
-    "type": "TEXT",
-    "name": "discount_code",
-    "displayName": "Discount Code",
-    "simpleValueType": true,
-    "enablingConditions": [
-      {
-        "paramName": "event_type",
-        "paramValue": "purchase",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "view",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "signup",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "lead",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
-        "paramValue": "",
-        "type": "IS_MACRO_REFERENCE"
-      }
-    ],
-    "help": "The discount code entered. Available on all event types.",
-    "valueHint": "daily12"
-  },
-  {
     "type": "GROUP",
     "name": "more_fields",
     "displayName": "More Fields",
     "subParams": [
       {
         "type": "TEXT",
+        "name": "value",
+        "displayName": "Revenue Value",
+        "simpleValueType": true,
+        "help": "The total amount (USD). Primarily used on purchase, optional on other events.",
+        "valueHint": "53.21"
+      },
+      {
+        "type": "TEXT",
+        "name": "order_number",
+        "displayName": "Order Number",
+        "simpleValueType": true,
+        "help": "The order ID. Available on all event types; used in reporting and as a deduplication key.",
+        "valueHint": "order_1234"
+      },
+      {
+        "type": "TEXT",
+        "name": "discount_code",
+        "displayName": "Discount Code",
+        "simpleValueType": true,
+        "help": "The discount / promo code entered. Available on all event types.",
+        "valueHint": "daily12"
+      },
+      {
+        "type": "TEXT",
         "name": "num_items",
         "displayName": "Item Quantity",
         "simpleValueType": true,
-        "help": "Number of items in order",
-        "valueHint": "2",
-        "enablingConditions": [
-          {
-            "paramName": "event_type",
-            "paramValue": "purchase",
-            "type": "EQUALS"
-          }
-        ]
+        "help": "Number of items in order.",
+        "valueHint": "2"
       },
       {
         "type": "TEXT",
         "name": "is_new_customer",
         "displayName": "New Customer Flag",
         "simpleValueType": true,
-        "enablingConditions": [
-          {
-            "paramName": "event_type",
-            "paramValue": "purchase",
-            "type": "EQUALS"
-          }
-        ],
-        "help": "Set to true if the customer is new. false otherwise",
+        "help": "Set to true if the customer is new. false otherwise.",
         "valueHint": "true"
       },
       {
@@ -276,14 +201,7 @@ ___TEMPLATE_PARAMETERS___
         "displayName": "Is Subscription Flag",
         "simpleValueType": true,
         "valueHint": "true",
-        "help": "Set to true if the customer has signed up for a recurring subscription. false otherwise.",
-        "enablingConditions": [
-          {
-            "paramName": "event_type",
-            "paramValue": "purchase",
-            "type": "EQUALS"
-          }
-        ]
+        "help": "Set to true if the customer signed up for a recurring subscription. false otherwise."
       },
       {
         "type": "TEXT",
@@ -291,14 +209,7 @@ ___TEMPLATE_PARAMETERS___
         "displayName": "Currency",
         "simpleValueType": true,
         "valueHint": "USD",
-        "help": "The currency the purchase amount is in. Defaults to USD",
-        "enablingConditions": [
-          {
-            "paramName": "event_type",
-            "paramValue": "purchase",
-            "type": "EQUALS"
-          }
-        ]
+        "help": "The currency the purchase amount is in. Defaults to USD."
       },
       {
         "type": "TEXT",
@@ -306,12 +217,16 @@ ___TEMPLATE_PARAMETERS___
         "displayName": "Product name",
         "simpleValueType": true,
         "valueHint": "Great Product",
-        "help": "The product name, comma-separated if multiple. Podscribe can return the product name for every attributed purchase, along with Order ID and other associated fields.",
-        "enablingConditions": []
+        "help": "The product name, comma-separated if multiple. Podscribe can return the product name for every attributed purchase, along with Order ID and other associated fields."
       }
     ],
-    "groupStyle": "ZIPPY_CLOSED",
+    "groupStyle": "ZIPPY_OPEN",
     "enablingConditions": [
+      {
+        "paramName": "event_type",
+        "paramValue": "view",
+        "type": "EQUALS"
+      },
       {
         "paramName": "event_type",
         "paramValue": "purchase",
@@ -417,85 +332,34 @@ const executePodscribe = () => {
     advertiser: advertiser
   });
   
-  // Now call the appropriate event based on event_type
-  switch(event_type) {
-    case 'view': {
-      const viewParams = {};
-      if (device_id) viewParams.device_id = device_id;
-      if (hashed_email) viewParams.hashed_email = hashed_email;
-      if (order_number) viewParams.order_number = order_number;
-      if (discount_code) viewParams.discount_code = discount_code;
-
-      podscribe('view', viewParams);
-      break;
-    }
-      
-    case 'purchase': {
-      const purchaseParams = {};
-      // Add base parameters
-      if (device_id) purchaseParams.device_id = device_id;
-      if (hashed_email) purchaseParams.hashed_email = hashed_email;
-      
-      // Add purchase-specific parameters
-      if (value) purchaseParams.value = value;
-      if (order_number) purchaseParams.order_number = order_number;
-      if (discount_code) purchaseParams.discount_code = discount_code;
-      
-      // Add additional parameters from template
-      if (num_items) purchaseParams.num_items = num_items;
-      if (is_new_customer) purchaseParams.is_new_customer = is_new_customer;
-      if (is_subscription) purchaseParams.is_subscription = is_subscription;
-      if (currency) purchaseParams.currency = currency;
-      if (product) purchaseParams.product = product;
-      
-      podscribe('purchase', purchaseParams);
-      break;
-    }
-      
-    case 'signup': {
-      const signupParams = {};
-      // Add base parameters
-      if (device_id) signupParams.device_id = device_id;
-      if (hashed_email) signupParams.hashed_email = hashed_email;
-      if (order_number) signupParams.order_number = order_number;
-      if (discount_code) signupParams.discount_code = discount_code;
-
-      // Add signup-specific parameters
-      if (signup_type) signupParams.signup_type = signup_type;
-
-      // Add relevant additional parameters
-      if (is_subscription) signupParams.is_subscription = is_subscription;
-      if (product) signupParams.product = product;
-      if (is_new_customer) signupParams.is_new_customer = is_new_customer;
-
-      podscribe('signup', signupParams);
-      break;
-    }
-
-    case 'lead': {
-      const leadParams = {};
-      // Add base parameters
-      if (device_id) leadParams.device_id = device_id;
-      if (hashed_email) leadParams.hashed_email = hashed_email;
-      if (order_number) leadParams.order_number = order_number;
-      if (discount_code) leadParams.discount_code = discount_code;
-
-      // Add lead-specific parameters
-      if (lead_type) leadParams.lead_type = lead_type;
-
-      // Add relevant additional parameters
-      if (product) leadParams.product = product;
-      if (is_new_customer) leadParams.is_new_customer = is_new_customer;
-
-      podscribe('lead', leadParams);
-      break;
-    }
-      
-    default:
-      log('WARNING: Unknown event type: ' + event_type);
-      return false;
+  // Validate event_type
+  if (event_type !== 'view' &&
+      event_type !== 'purchase' &&
+      event_type !== 'signup' &&
+      event_type !== 'lead') {
+    log('WARNING: Unknown event type: ' + event_type);
+    return false;
   }
-  
+
+  // Build a single params object. All optional fields are available on all
+  // event types; empty values are skipped so they're not sent to podscribe.
+  const params = {};
+  if (device_id) params.device_id = device_id;
+  if (hashed_email) params.hashed_email = hashed_email;
+  if (value) params.value = value;
+  if (order_number) params.order_number = order_number;
+  if (discount_code) params.discount_code = discount_code;
+  if (num_items) params.num_items = num_items;
+  if (is_new_customer) params.is_new_customer = is_new_customer;
+  if (is_subscription) params.is_subscription = is_subscription;
+  if (currency) params.currency = currency;
+  if (product) params.product = product;
+
+  // Event-specific type fields
+  if (event_type === 'signup' && signup_type) params.signup_type = signup_type;
+  if (event_type === 'lead' && lead_type) params.lead_type = lead_type;
+
+  podscribe(event_type, params);
   return true;
 };
 
