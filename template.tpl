@@ -178,11 +178,26 @@ ___TEMPLATE_PARAMETERS___
       },
       {
         "paramName": "event_type",
+        "paramValue": "view",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "signup",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "lead",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
         "paramValue": "",
         "type": "IS_MACRO_REFERENCE"
       }
     ],
-    "help": "The order ID",
+    "help": "The order ID. Available on all event types; used in reporting and as a deduplication key.",
     "valueHint": "order_1234"
   },
   {
@@ -198,11 +213,26 @@ ___TEMPLATE_PARAMETERS___
       },
       {
         "paramName": "event_type",
+        "paramValue": "view",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "signup",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "lead",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
         "paramValue": "",
         "type": "IS_MACRO_REFERENCE"
       }
     ],
-    "help": "The discount code entered",
+    "help": "The discount code entered. Available on all event types.",
     "valueHint": "daily12"
   },
   {
@@ -393,7 +423,9 @@ const executePodscribe = () => {
       const viewParams = {};
       if (device_id) viewParams.device_id = device_id;
       if (hashed_email) viewParams.hashed_email = hashed_email;
-      
+      if (order_number) viewParams.order_number = order_number;
+      if (discount_code) viewParams.discount_code = discount_code;
+
       podscribe('view', viewParams);
       break;
     }
@@ -425,32 +457,36 @@ const executePodscribe = () => {
       // Add base parameters
       if (device_id) signupParams.device_id = device_id;
       if (hashed_email) signupParams.hashed_email = hashed_email;
-      
+      if (order_number) signupParams.order_number = order_number;
+      if (discount_code) signupParams.discount_code = discount_code;
+
       // Add signup-specific parameters
       if (signup_type) signupParams.signup_type = signup_type;
-      
+
       // Add relevant additional parameters
       if (is_subscription) signupParams.is_subscription = is_subscription;
       if (product) signupParams.product = product;
       if (is_new_customer) signupParams.is_new_customer = is_new_customer;
-      
+
       podscribe('signup', signupParams);
       break;
     }
-      
+
     case 'lead': {
       const leadParams = {};
       // Add base parameters
       if (device_id) leadParams.device_id = device_id;
       if (hashed_email) leadParams.hashed_email = hashed_email;
-      
+      if (order_number) leadParams.order_number = order_number;
+      if (discount_code) leadParams.discount_code = discount_code;
+
       // Add lead-specific parameters
       if (lead_type) leadParams.lead_type = lead_type;
-      
+
       // Add relevant additional parameters
       if (product) leadParams.product = product;
       if (is_new_customer) leadParams.is_new_customer = is_new_customer;
-      
+
       podscribe('lead', leadParams);
       break;
     }
