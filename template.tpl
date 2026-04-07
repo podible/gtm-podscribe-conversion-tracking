@@ -109,11 +109,6 @@ ___TEMPLATE_PARAMETERS___
     "enablingConditions": [
       {
         "paramName": "event_type",
-        "paramValue": "view",
-        "type": "EQUALS"
-      },
-      {
-        "paramName": "event_type",
         "paramValue": "purchase",
         "type": "EQUALS"
       },
@@ -151,33 +146,159 @@ ___TEMPLATE_PARAMETERS___
     ]
   },
   {
+    "type": "TEXT",
+    "name": "value",
+    "displayName": "Revenue Value",
+    "simpleValueType": true,
+    "enablingConditions": [
+      {
+        "paramName": "event_type",
+        "paramValue": "purchase",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "",
+        "type": "IS_MACRO_REFERENCE"
+      }
+    ],
+    "help": "The total purchase amount (USD)",
+    "valueHint": "53.21"
+  },
+  {
+    "type": "TEXT",
+    "name": "order_number",
+    "displayName": "Order Number",
+    "simpleValueType": true,
+    "enablingConditions": [
+      {
+        "paramName": "event_type",
+        "paramValue": "purchase",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "",
+        "type": "IS_MACRO_REFERENCE"
+      }
+    ],
+    "help": "The order ID",
+    "valueHint": "order_1234"
+  },
+  {
+    "type": "TEXT",
+    "name": "discount_code",
+    "displayName": "Discount Code",
+    "simpleValueType": true,
+    "enablingConditions": [
+      {
+        "paramName": "event_type",
+        "paramValue": "purchase",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "",
+        "type": "IS_MACRO_REFERENCE"
+      }
+    ],
+    "help": "The discount code entered",
+    "valueHint": "daily12"
+  },
+  {
     "type": "GROUP",
     "name": "more_fields",
     "displayName": "More Fields",
     "subParams": [
       {
         "type": "TEXT",
-        "name": "value",
-        "displayName": "Revenue Value",
-        "simpleValueType": true,
-        "help": "The total amount (USD). Primarily used on purchase, optional on other events.",
-        "valueHint": "53.21"
-      },
-      {
-        "type": "TEXT",
-        "name": "order_number",
+        "name": "order_number_ext",
         "displayName": "Order Number",
         "simpleValueType": true,
-        "help": "The order ID. Available on all event types; used in reporting and as a deduplication key.",
-        "valueHint": "order_1234"
+        "help": "The order ID. Used in reporting and as a deduplication key (same as the purchase Order Number field).",
+        "valueHint": "order_1234",
+        "enablingConditions": [
+          {
+            "paramName": "event_type",
+            "paramValue": "view",
+            "type": "EQUALS"
+          },
+          {
+            "paramName": "event_type",
+            "paramValue": "signup",
+            "type": "EQUALS"
+          },
+          {
+            "paramName": "event_type",
+            "paramValue": "lead",
+            "type": "EQUALS"
+          }
+        ]
       },
       {
         "type": "TEXT",
-        "name": "discount_code",
+        "name": "discount_code_ext",
         "displayName": "Discount Code",
         "simpleValueType": true,
-        "help": "The discount / promo code entered. Available on all event types.",
-        "valueHint": "daily12"
+        "help": "The discount / promo code entered (same as the purchase Discount Code field).",
+        "valueHint": "daily12",
+        "enablingConditions": [
+          {
+            "paramName": "event_type",
+            "paramValue": "view",
+            "type": "EQUALS"
+          },
+          {
+            "paramName": "event_type",
+            "paramValue": "signup",
+            "type": "EQUALS"
+          },
+          {
+            "paramName": "event_type",
+            "paramValue": "lead",
+            "type": "EQUALS"
+          }
+        ]
+      },
+      {
+        "type": "TEXT",
+        "name": "value_ext",
+        "displayName": "Revenue Value",
+        "simpleValueType": true,
+        "help": "The transaction amount (USD), same as the purchase Revenue Value field.",
+        "valueHint": "53.21",
+        "enablingConditions": [
+          {
+            "paramName": "event_type",
+            "paramValue": "view",
+            "type": "EQUALS"
+          },
+          {
+            "paramName": "event_type",
+            "paramValue": "signup",
+            "type": "EQUALS"
+          },
+          {
+            "paramName": "event_type",
+            "paramValue": "lead",
+            "type": "EQUALS"
+          }
+        ]
+      },
+      {
+        "type": "TEXT",
+        "name": "hashed_email_ext",
+        "displayName": "User Hashed Email",
+        "simpleValueType": true,
+        "help": "The privacy-safe hashed email (MD5 preferred, or SHA256). Lowercase and trim whitespace prior to hashing.",
+        "valueHint": "4093f4f12ec20fbcc8879f98a59b8894",
+        "enablingConditions": [
+          {
+            "paramName": "event_type",
+            "paramValue": "view",
+            "type": "EQUALS"
+          }
+        ]
       },
       {
         "type": "TEXT",
@@ -209,7 +330,7 @@ ___TEMPLATE_PARAMETERS___
         "displayName": "Currency",
         "simpleValueType": true,
         "valueHint": "USD",
-        "help": "The currency the purchase amount is in. Defaults to USD."
+        "help": "The currency the amount is in. Defaults to USD."
       },
       {
         "type": "TEXT",
@@ -220,7 +341,7 @@ ___TEMPLATE_PARAMETERS___
         "help": "The product name, comma-separated if multiple. Podscribe can return the product name for every attributed purchase, along with Order ID and other associated fields."
       }
     ],
-    "groupStyle": "ZIPPY_OPEN",
+    "groupStyle": "ZIPPY_CLOSED",
     "enablingConditions": [
       {
         "paramName": "event_type",
@@ -296,11 +417,16 @@ const advertiser = makeString(data.advertiser || '');
 const event_type = makeString(data.event_type || 'view');
 const device_id = makeString(data.device_id || '');
 
-// Optional event-specific parameters
-const value = data.value ? makeString(data.value) : '';
-const order_number = data.order_number ? makeString(data.order_number) : '';
-const discount_code = data.discount_code ? makeString(data.discount_code) : '';
-const hashed_email = data.hashed_email ? makeString(data.hashed_email) : '';
+// Optional event-specific parameters.
+// value / order_number / discount_code / hashed_email are exposed in two
+// template locations: top-level (for purchase / the original event types)
+// and inside the More Fields group with a "_ext" suffix (for other events,
+// since GTM requires globally unique parameter names). Coalesce here so the
+// rest of the script can treat them uniformly.
+const value = makeString(data.value || data.value_ext || '');
+const order_number = makeString(data.order_number || data.order_number_ext || '');
+const discount_code = makeString(data.discount_code || data.discount_code_ext || '');
+const hashed_email = makeString(data.hashed_email || data.hashed_email_ext || '');
 const lead_type = data.lead_type ? makeString(data.lead_type) : '';
 const signup_type = data.signup_type ? makeString(data.signup_type) : '';
 
