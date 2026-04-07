@@ -206,6 +206,53 @@ ___TEMPLATE_PARAMETERS___
     "valueHint": "daily12"
   },
   {
+    "type": "SIMPLE_TABLE",
+    "name": "custom_params",
+    "displayName": "Custom Parameters",
+    "simpleTableColumns": [
+      {
+        "defaultValue": "",
+        "displayName": "Name",
+        "name": "name",
+        "type": "TEXT",
+        "valueValidators": [
+          {
+            "type": "NON_EMPTY"
+          }
+        ]
+      },
+      {
+        "defaultValue": "",
+        "displayName": "Value",
+        "name": "value",
+        "type": "TEXT"
+      }
+    ],
+    "help": "Optional: additional arbitrary key / value pairs to forward to Podscribe. Use this for fields the template doesn't expose directly. Not supported on view events (the Podscribe js-tag pixel drops custom params on view).",
+    "enablingConditions": [
+      {
+        "paramName": "event_type",
+        "paramValue": "purchase",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "",
+        "type": "IS_MACRO_REFERENCE"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "signup",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "event_type",
+        "paramValue": "lead",
+        "type": "EQUALS"
+      }
+    ]
+  },
+  {
     "type": "GROUP",
     "name": "more_fields",
     "displayName": "More Fields",
@@ -361,7 +408,10 @@ ___SANDBOXED_JS_FOR_WEB_TEMPLATE___
  * @param {string} is_subscription - Set to true if the customer signed up for a recurring subscription
  * @param {string} currency - The currency code (defaults to USD)
  * @param {string} product - The product or service name
- * 
+ * @param {Array<{name: string, value: string}>} custom_params - Arbitrary
+ *   key / value pairs forwarded as-is to podscribe(). Not applied on view
+ *   events — the js-tag pixel drops custom params on view.
+ *
  * @version 1.0.0
  */
 
@@ -450,6 +500,19 @@ const executePodscribe = () => {
   // Event-specific type fields
   if (event_type === 'signup' && signup_type) params.signup_type = signup_type;
   if (event_type === 'lead' && lead_type) params.lead_type = lead_type;
+
+  // Custom parameters from the SIMPLE_TABLE field. Each row is
+  // { name: '...', value: '...' }. Skip empty rows, stringify both sides.
+  // Not applied on view events — the js-tag pixel drops custom params on
+  // view, so forwarding them here would be misleading.
+  if (event_type !== 'view' && data.custom_params) {
+    for (let i = 0; i < data.custom_params.length; i++) {
+      const row = data.custom_params[i];
+      if (row && row.name) {
+        params[makeString(row.name)] = makeString(row.value || '');
+      }
+    }
+  }
 
   podscribe(event_type, params);
   return true;
