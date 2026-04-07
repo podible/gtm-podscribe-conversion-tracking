@@ -333,7 +333,7 @@ ___TEMPLATE_PARAMETERS___
             "type": "TEXT"
           }
         ],
-        "help": "Optional: additional arbitrary key / value pairs to forward to Podscribe. Use this for fields the template doesn't expose directly. Not supported on view events (the Podscribe js-tag pixel drops custom params on view)."
+        "help": "Optional: additional arbitrary key / value pairs to forward to Podscribe. Use this for fields the template doesn't expose directly."
       }
     ],
     "groupStyle": "ZIPPY_CLOSED",
