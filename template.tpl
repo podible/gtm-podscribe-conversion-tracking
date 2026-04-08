@@ -631,7 +631,239 @@ ___WEB_PERMISSIONS___
 
 ___TESTS___
 
-scenarios: []
+scenarios:
+- name: view event — minimal required fields only
+  code: |-
+    const calls = [];
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'view'
+    });
+
+    assertThat(calls.length).isEqualTo(2);
+    assertThat(calls[0][0]).isEqualTo('init');
+    assertThat(calls[0][1].user_id).isEqualTo('8cf82c94-db1f-4884-b808-c09f0e32d26d');
+    assertThat(calls[0][1].advertiser).isEqualTo('amazingbrand123');
+    assertThat(calls[1][0]).isEqualTo('view');
+    assertThat(calls[1][1]).isEqualTo({});
+
+- name: purchase event — all top-level + More Fields + custom_params
+  code: |-
+    const calls = [];
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'purchase',
+      device_id: 'bc10665e-b527-4b20-ba0f',
+      hashed_email: '4093f4f12ec20fbcc8879f98a59b8894',
+      value: '53.21',
+      order_number: 'order_1234',
+      discount_code: 'daily12',
+      num_items: '2',
+      is_new_customer: 'true',
+      is_subscription: 'true',
+      currency: 'USD',
+      product: 'Great Product',
+      custom_params: [
+        { name: 'utm_source', value: 'newsletter' },
+        { name: 'cart_id', value: 'cart_42' },
+        { name: '', value: 'should_be_skipped' }
+      ]
+    });
+
+    assertThat(calls.length).isEqualTo(2);
+    assertThat(calls[1][0]).isEqualTo('purchase');
+    const p = calls[1][1];
+    assertThat(p.device_id).isEqualTo('bc10665e-b527-4b20-ba0f');
+    assertThat(p.hashed_email).isEqualTo('4093f4f12ec20fbcc8879f98a59b8894');
+    assertThat(p.value).isEqualTo('53.21');
+    assertThat(p.order_number).isEqualTo('order_1234');
+    assertThat(p.discount_code).isEqualTo('daily12');
+    assertThat(p.num_items).isEqualTo('2');
+    assertThat(p.is_new_customer).isEqualTo('true');
+    assertThat(p.is_subscription).isEqualTo('true');
+    assertThat(p.currency).isEqualTo('USD');
+    assertThat(p.product).isEqualTo('Great Product');
+    assertThat(p.utm_source).isEqualTo('newsletter');
+    assertThat(p.cart_id).isEqualTo('cart_42');
+
+- name: signup event — *_ext fields coalesce, signup_type forwarded
+  code: |-
+    const calls = [];
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'signup',
+      device_id: 'bc10665e-b527-4b20-ba0f',
+      hashed_email: '4093f4f12ec20fbcc8879f98a59b8894',
+      value_ext: '99.00',
+      order_number_ext: 'order_signup_77',
+      discount_code_ext: 'WELCOME',
+      product: 'Great Product',
+      signup_type: 'newsletter',
+      custom_params: [
+        { name: 'utm_source', value: 'fb' }
+      ]
+    });
+
+    assertThat(calls.length).isEqualTo(2);
+    assertThat(calls[1][0]).isEqualTo('signup');
+    const p = calls[1][1];
+    assertThat(p.value).isEqualTo('99.00');
+    assertThat(p.order_number).isEqualTo('order_signup_77');
+    assertThat(p.discount_code).isEqualTo('WELCOME');
+    assertThat(p.signup_type).isEqualTo('newsletter');
+    assertThat(p.product).isEqualTo('Great Product');
+    assertThat(p.utm_source).isEqualTo('fb');
+
+- name: lead event — *_ext fields coalesce, lead_type forwarded
+  code: |-
+    const calls = [];
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'lead',
+      device_id: 'bc10665e-b527-4b20-ba0f',
+      hashed_email: '4093f4f12ec20fbcc8879f98a59b8894',
+      value_ext: '0',
+      order_number_ext: 'lead_555',
+      discount_code_ext: 'EARLYBIRD',
+      product: 'Great Product',
+      lead_type: 'demo_request',
+      custom_params: [
+        { name: 'campaign', value: 'spring2026' }
+      ]
+    });
+
+    assertThat(calls.length).isEqualTo(2);
+    assertThat(calls[1][0]).isEqualTo('lead');
+    const p = calls[1][1];
+    assertThat(p.value).isEqualTo('0');
+    assertThat(p.order_number).isEqualTo('lead_555');
+    assertThat(p.discount_code).isEqualTo('EARLYBIRD');
+    assertThat(p.lead_type).isEqualTo('demo_request');
+    assertThat(p.product).isEqualTo('Great Product');
+    assertThat(p.campaign).isEqualTo('spring2026');
+
+- name: purchase event — minimal (only value)
+  code: |-
+    const calls = [];
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'purchase',
+      value: '12.00'
+    });
+
+    assertThat(calls.length).isEqualTo(2);
+    assertThat(calls[1][0]).isEqualTo('purchase');
+    assertThat(calls[1][1]).isEqualTo({ value: '12.00' });
+
+- name: unknown event_type fails gracefully
+  code: |-
+    const calls = [];
+    let success = false;
+    let failure = false;
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => { success = true; },
+      gtmOnFailure: () => { failure = true; },
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'banana'
+    });
+
+    // init still runs, but the event call does not.
+    assertThat(calls.length).isEqualTo(1);
+    assertThat(calls[0][0]).isEqualTo('init');
+    assertThat(success).isEqualTo(false);
+    assertThat(failure).isEqualTo(true);
+
+- name: empty custom_params row is skipped
+  code: |-
+    const calls = [];
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'purchase',
+      custom_params: [
+        { name: '', value: 'orphan' },
+        { name: 'good', value: 'kept' }
+      ]
+    });
+
+    const p = calls[1][1];
+    assertThat(p.good).isEqualTo('kept');
+    assertThat(p['']).isEqualTo(undefined);
+
 setup: |-
   if (typeof mock === 'function') {
     mock('injectScript', (url, onSuccess) => { onSuccess(); });
