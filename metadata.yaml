@@ -1,7 +1,7 @@
 homepage: "https://podscribe.com"
 documentation: "https://help.podscribe.com/sending-podscribe-conversion-events-/g4g8w3hppouCfkXZdcx6FV/sending-events-via-google-tag-manager-gtm/3mDBt8JpG3wncH11tpMVZw"
 versions:
-  - sha: 8c367011492d04463dcdefd234f7f7f1ae8c20c9
+  - sha: 0a4829e77d4e8dd5a085940758fb24d7f66a80e0
     version: 1.1.0
     changeNotes: |
       - Expose order_number, discount_code, and value on signup and lead
