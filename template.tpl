@@ -813,8 +813,6 @@ scenarios:
 - name: unknown event_type fails gracefully
   code: |-
     const calls = [];
-    let success = false;
-    let failure = false;
     mock('copyFromWindow', () => {
       return function() {
         const args = [];
@@ -824,18 +822,21 @@ scenarios:
     });
 
     runCode({
-      gtmOnSuccess: () => { success = true; },
-      gtmOnFailure: () => { failure = true; },
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
       user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
       advertiser: 'amazingbrand123',
       event_type: 'banana'
     });
 
-    // init still runs, but the event call does not.
+    // init still runs, but the actual event call does not.
     assertThat(calls.length).isEqualTo(1);
     assertThat(calls[0][0]).isEqualTo('init');
-    assertThat(success).isEqualTo(false);
-    assertThat(failure).isEqualTo(true);
+    // Use assertApi for gtmOnSuccess / gtmOnFailure because the GTM test
+    // harness tracks these internally — user-provided closures on `data`
+    // don't capture invocation.
+    assertApi('gtmOnFailure').wasCalled();
+    assertApi('gtmOnSuccess').wasNotCalled();
 
 - name: empty custom_params row is skipped
   code: |-
