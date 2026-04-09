@@ -11,7 +11,7 @@ ___INFO___
 {
   "type": "TAG",
   "id": "cvt_temp_public_id",
-  "version": 1,
+  "version": 2,
   "securityGroups": [],
   "displayName": "Podscribe",
   "categories": [
@@ -212,32 +212,78 @@ ___TEMPLATE_PARAMETERS___
     "subParams": [
       {
         "type": "TEXT",
-        "name": "num_items",
-        "displayName": "Item Quantity",
+        "name": "order_number_ext",
+        "displayName": "Order Number",
         "simpleValueType": true,
-        "help": "Number of items in order",
-        "valueHint": "2",
+        "help": "The order ID. Used in reporting and as a deduplication key (same as the purchase Order Number field).",
+        "valueHint": "order_1234",
         "enablingConditions": [
           {
             "paramName": "event_type",
-            "paramValue": "purchase",
+            "paramValue": "signup",
+            "type": "EQUALS"
+          },
+          {
+            "paramName": "event_type",
+            "paramValue": "lead",
             "type": "EQUALS"
           }
         ]
       },
       {
         "type": "TEXT",
-        "name": "is_new_customer",
-        "displayName": "New Customer Flag",
+        "name": "discount_code_ext",
+        "displayName": "Discount Code",
         "simpleValueType": true,
+        "help": "The discount / promo code entered (same as the purchase Discount Code field).",
+        "valueHint": "daily12",
         "enablingConditions": [
           {
             "paramName": "event_type",
-            "paramValue": "purchase",
+            "paramValue": "signup",
+            "type": "EQUALS"
+          },
+          {
+            "paramName": "event_type",
+            "paramValue": "lead",
             "type": "EQUALS"
           }
-        ],
-        "help": "Set to true if the customer is new. false otherwise",
+        ]
+      },
+      {
+        "type": "TEXT",
+        "name": "value_ext",
+        "displayName": "Revenue Value",
+        "simpleValueType": true,
+        "help": "The transaction amount (USD), same as the purchase Revenue Value field.",
+        "valueHint": "53.21",
+        "enablingConditions": [
+          {
+            "paramName": "event_type",
+            "paramValue": "signup",
+            "type": "EQUALS"
+          },
+          {
+            "paramName": "event_type",
+            "paramValue": "lead",
+            "type": "EQUALS"
+          }
+        ]
+      },
+      {
+        "type": "TEXT",
+        "name": "num_items",
+        "displayName": "Item Quantity",
+        "simpleValueType": true,
+        "help": "Number of items in order.",
+        "valueHint": "2"
+      },
+      {
+        "type": "TEXT",
+        "name": "is_new_customer",
+        "displayName": "New Customer Flag",
+        "simpleValueType": true,
+        "help": "Set to true if the customer is new. false otherwise.",
         "valueHint": "true"
       },
       {
@@ -246,14 +292,7 @@ ___TEMPLATE_PARAMETERS___
         "displayName": "Is Subscription Flag",
         "simpleValueType": true,
         "valueHint": "true",
-        "help": "Set to true if the customer has signed up for a recurring subscription. false otherwise.",
-        "enablingConditions": [
-          {
-            "paramName": "event_type",
-            "paramValue": "purchase",
-            "type": "EQUALS"
-          }
-        ]
+        "help": "Set to true if the customer signed up for a recurring subscription. false otherwise."
       },
       {
         "type": "TEXT",
@@ -261,14 +300,7 @@ ___TEMPLATE_PARAMETERS___
         "displayName": "Currency",
         "simpleValueType": true,
         "valueHint": "USD",
-        "help": "The currency the purchase amount is in. Defaults to USD",
-        "enablingConditions": [
-          {
-            "paramName": "event_type",
-            "paramValue": "purchase",
-            "type": "EQUALS"
-          }
-        ]
+        "help": "The currency the amount is in. Defaults to USD."
       },
       {
         "type": "TEXT",
@@ -276,8 +308,32 @@ ___TEMPLATE_PARAMETERS___
         "displayName": "Product name",
         "simpleValueType": true,
         "valueHint": "Great Product",
-        "help": "The product name, comma-separated if multiple. Podscribe can return the product name for every attributed purchase, along with Order ID and other associated fields.",
-        "enablingConditions": []
+        "help": "The product name, comma-separated if multiple. Podscribe can return the product name for every attributed purchase, along with Order ID and other associated fields."
+      },
+      {
+        "type": "SIMPLE_TABLE",
+        "name": "custom_params",
+        "displayName": "Custom Parameters",
+        "simpleTableColumns": [
+          {
+            "defaultValue": "",
+            "displayName": "Name",
+            "name": "name",
+            "type": "TEXT",
+            "valueValidators": [
+              {
+                "type": "NON_EMPTY"
+              }
+            ]
+          },
+          {
+            "defaultValue": "",
+            "displayName": "Value",
+            "name": "value",
+            "type": "TEXT"
+          }
+        ],
+        "help": "Optional: additional arbitrary key / value pairs to forward to Podscribe. Use this for fields the template doesn't expose directly."
       }
     ],
     "groupStyle": "ZIPPY_CLOSED",
@@ -330,7 +386,10 @@ ___SANDBOXED_JS_FOR_WEB_TEMPLATE___
  * @param {string} is_subscription - Set to true if the customer signed up for a recurring subscription
  * @param {string} currency - The currency code (defaults to USD)
  * @param {string} product - The product or service name
- * 
+ * @param {Array<{name: string, value: string}>} custom_params - Arbitrary
+ *   key / value pairs forwarded as-is to podscribe(). Not applied on view
+ *   events — the js-tag pixel drops custom params on view.
+ *
  * @version 1.0.0
  */
 
@@ -351,10 +410,16 @@ const advertiser = makeString(data.advertiser || '');
 const event_type = makeString(data.event_type || 'view');
 const device_id = makeString(data.device_id || '');
 
-// Optional event-specific parameters
-const value = data.value ? makeString(data.value) : '';
-const order_number = data.order_number ? makeString(data.order_number) : '';
-const discount_code = data.discount_code ? makeString(data.discount_code) : '';
+// Optional event-specific parameters.
+// value / order_number / discount_code are exposed in two template locations:
+// top-level (for purchase — the original location) and inside the More Fields
+// group with a "_ext" suffix (for signup / lead, since GTM requires globally
+// unique parameter names). Coalesce here so the rest of the script can treat
+// them uniformly. View events intentionally do not expose these fields — the
+// js-tag pixel drops custom params on view, so adding UI would be misleading.
+const value = makeString(data.value || data.value_ext || '');
+const order_number = makeString(data.order_number || data.order_number_ext || '');
+const discount_code = makeString(data.discount_code || data.discount_code_ext || '');
 const hashed_email = data.hashed_email ? makeString(data.hashed_email) : '';
 const lead_type = data.lead_type ? makeString(data.lead_type) : '';
 const signup_type = data.signup_type ? makeString(data.signup_type) : '';
@@ -387,79 +452,47 @@ const executePodscribe = () => {
     advertiser: advertiser
   });
   
-  // Now call the appropriate event based on event_type
-  switch(event_type) {
-    case 'view': {
-      const viewParams = {};
-      if (device_id) viewParams.device_id = device_id;
-      if (hashed_email) viewParams.hashed_email = hashed_email;
-      
-      podscribe('view', viewParams);
-      break;
-    }
-      
-    case 'purchase': {
-      const purchaseParams = {};
-      // Add base parameters
-      if (device_id) purchaseParams.device_id = device_id;
-      if (hashed_email) purchaseParams.hashed_email = hashed_email;
-      
-      // Add purchase-specific parameters
-      if (value) purchaseParams.value = value;
-      if (order_number) purchaseParams.order_number = order_number;
-      if (discount_code) purchaseParams.discount_code = discount_code;
-      
-      // Add additional parameters from template
-      if (num_items) purchaseParams.num_items = num_items;
-      if (is_new_customer) purchaseParams.is_new_customer = is_new_customer;
-      if (is_subscription) purchaseParams.is_subscription = is_subscription;
-      if (currency) purchaseParams.currency = currency;
-      if (product) purchaseParams.product = product;
-      
-      podscribe('purchase', purchaseParams);
-      break;
-    }
-      
-    case 'signup': {
-      const signupParams = {};
-      // Add base parameters
-      if (device_id) signupParams.device_id = device_id;
-      if (hashed_email) signupParams.hashed_email = hashed_email;
-      
-      // Add signup-specific parameters
-      if (signup_type) signupParams.signup_type = signup_type;
-      
-      // Add relevant additional parameters
-      if (is_subscription) signupParams.is_subscription = is_subscription;
-      if (product) signupParams.product = product;
-      if (is_new_customer) signupParams.is_new_customer = is_new_customer;
-      
-      podscribe('signup', signupParams);
-      break;
-    }
-      
-    case 'lead': {
-      const leadParams = {};
-      // Add base parameters
-      if (device_id) leadParams.device_id = device_id;
-      if (hashed_email) leadParams.hashed_email = hashed_email;
-      
-      // Add lead-specific parameters
-      if (lead_type) leadParams.lead_type = lead_type;
-      
-      // Add relevant additional parameters
-      if (product) leadParams.product = product;
-      if (is_new_customer) leadParams.is_new_customer = is_new_customer;
-      
-      podscribe('lead', leadParams);
-      break;
-    }
-      
-    default:
-      log('WARNING: Unknown event type: ' + event_type);
-      return false;
+  // Validate event_type
+  if (event_type !== 'view' &&
+      event_type !== 'purchase' &&
+      event_type !== 'signup' &&
+      event_type !== 'lead') {
+    log('WARNING: Unknown event type: ' + event_type);
+    return false;
   }
-  
+
+  // Build a single params object. All optional fields are available on all
+  // event types; empty values are skipped so they're not sent to podscribe.
+  const params = {};
+  if (device_id) params.device_id = device_id;
+  if (hashed_email) params.hashed_email = hashed_email;
+  if (value) params.value = value;
+  if (order_number) params.order_number = order_number;
+  if (discount_code) params.discount_code = discount_code;
+  if (num_items) params.num_items = num_items;
+  if (is_new_customer) params.is_new_customer = is_new_customer;
+  if (is_subscription) params.is_subscription = is_subscription;
+  if (currency) params.currency = currency;
+  if (product) params.product = product;
+
+  // Event-specific type fields
+  if (event_type === 'signup' && signup_type) params.signup_type = signup_type;
+  if (event_type === 'lead' && lead_type) params.lead_type = lead_type;
+
+  // Custom parameters from the SIMPLE_TABLE field. Each row is
+  // { name: '...', value: '...' }. Skip empty rows, stringify both sides.
+  // Not applied on view events — the js-tag pixel drops custom params on
+  // view, so forwarding them here would be misleading.
+  if (event_type !== 'view' && data.custom_params) {
+    for (let i = 0; i < data.custom_params.length; i++) {
+      const row = data.custom_params[i];
+      if (row && row.name) {
+        params[makeString(row.name)] = makeString(row.value || '');
+      }
+    }
+  }
+
+  podscribe(event_type, params);
   return true;
 };
 
@@ -598,7 +631,240 @@ ___WEB_PERMISSIONS___
 
 ___TESTS___
 
-scenarios: []
+scenarios:
+- name: view event — minimal required fields only
+  code: |-
+    const calls = [];
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'view'
+    });
+
+    assertThat(calls.length).isEqualTo(2);
+    assertThat(calls[0][0]).isEqualTo('init');
+    assertThat(calls[0][1].user_id).isEqualTo('8cf82c94-db1f-4884-b808-c09f0e32d26d');
+    assertThat(calls[0][1].advertiser).isEqualTo('amazingbrand123');
+    assertThat(calls[1][0]).isEqualTo('view');
+    assertThat(calls[1][1]).isEqualTo({});
+
+- name: purchase event — all top-level + More Fields + custom_params
+  code: |-
+    const calls = [];
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'purchase',
+      device_id: 'bc10665e-b527-4b20-ba0f',
+      hashed_email: '4093f4f12ec20fbcc8879f98a59b8894',
+      value: '53.21',
+      order_number: 'order_1234',
+      discount_code: 'daily12',
+      num_items: '2',
+      is_new_customer: 'true',
+      is_subscription: 'true',
+      currency: 'USD',
+      product: 'Great Product',
+      custom_params: [
+        { name: 'utm_source', value: 'newsletter' },
+        { name: 'cart_id', value: 'cart_42' },
+        { name: '', value: 'should_be_skipped' }
+      ]
+    });
+
+    assertThat(calls.length).isEqualTo(2);
+    assertThat(calls[1][0]).isEqualTo('purchase');
+    const p = calls[1][1];
+    assertThat(p.device_id).isEqualTo('bc10665e-b527-4b20-ba0f');
+    assertThat(p.hashed_email).isEqualTo('4093f4f12ec20fbcc8879f98a59b8894');
+    assertThat(p.value).isEqualTo('53.21');
+    assertThat(p.order_number).isEqualTo('order_1234');
+    assertThat(p.discount_code).isEqualTo('daily12');
+    assertThat(p.num_items).isEqualTo('2');
+    assertThat(p.is_new_customer).isEqualTo('true');
+    assertThat(p.is_subscription).isEqualTo('true');
+    assertThat(p.currency).isEqualTo('USD');
+    assertThat(p.product).isEqualTo('Great Product');
+    assertThat(p.utm_source).isEqualTo('newsletter');
+    assertThat(p.cart_id).isEqualTo('cart_42');
+
+- name: signup event — *_ext fields coalesce, signup_type forwarded
+  code: |-
+    const calls = [];
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'signup',
+      device_id: 'bc10665e-b527-4b20-ba0f',
+      hashed_email: '4093f4f12ec20fbcc8879f98a59b8894',
+      value_ext: '99.00',
+      order_number_ext: 'order_signup_77',
+      discount_code_ext: 'WELCOME',
+      product: 'Great Product',
+      signup_type: 'newsletter',
+      custom_params: [
+        { name: 'utm_source', value: 'fb' }
+      ]
+    });
+
+    assertThat(calls.length).isEqualTo(2);
+    assertThat(calls[1][0]).isEqualTo('signup');
+    const p = calls[1][1];
+    assertThat(p.value).isEqualTo('99.00');
+    assertThat(p.order_number).isEqualTo('order_signup_77');
+    assertThat(p.discount_code).isEqualTo('WELCOME');
+    assertThat(p.signup_type).isEqualTo('newsletter');
+    assertThat(p.product).isEqualTo('Great Product');
+    assertThat(p.utm_source).isEqualTo('fb');
+
+- name: lead event — *_ext fields coalesce, lead_type forwarded
+  code: |-
+    const calls = [];
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'lead',
+      device_id: 'bc10665e-b527-4b20-ba0f',
+      hashed_email: '4093f4f12ec20fbcc8879f98a59b8894',
+      value_ext: '0',
+      order_number_ext: 'lead_555',
+      discount_code_ext: 'EARLYBIRD',
+      product: 'Great Product',
+      lead_type: 'demo_request',
+      custom_params: [
+        { name: 'campaign', value: 'spring2026' }
+      ]
+    });
+
+    assertThat(calls.length).isEqualTo(2);
+    assertThat(calls[1][0]).isEqualTo('lead');
+    const p = calls[1][1];
+    assertThat(p.value).isEqualTo('0');
+    assertThat(p.order_number).isEqualTo('lead_555');
+    assertThat(p.discount_code).isEqualTo('EARLYBIRD');
+    assertThat(p.lead_type).isEqualTo('demo_request');
+    assertThat(p.product).isEqualTo('Great Product');
+    assertThat(p.campaign).isEqualTo('spring2026');
+
+- name: purchase event — minimal (only value)
+  code: |-
+    const calls = [];
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'purchase',
+      value: '12.00'
+    });
+
+    assertThat(calls.length).isEqualTo(2);
+    assertThat(calls[1][0]).isEqualTo('purchase');
+    assertThat(calls[1][1]).isEqualTo({ value: '12.00' });
+
+- name: unknown event_type fails gracefully
+  code: |-
+    const calls = [];
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'banana'
+    });
+
+    // init still runs, but the actual event call does not.
+    assertThat(calls.length).isEqualTo(1);
+    assertThat(calls[0][0]).isEqualTo('init');
+    // Use assertApi for gtmOnSuccess / gtmOnFailure because the GTM test
+    // harness tracks these internally — user-provided closures on `data`
+    // don't capture invocation.
+    assertApi('gtmOnFailure').wasCalled();
+    assertApi('gtmOnSuccess').wasNotCalled();
+
+- name: empty custom_params row is skipped
+  code: |-
+    const calls = [];
+    mock('copyFromWindow', () => {
+      return function() {
+        const args = [];
+        for (let i = 0; i < arguments.length; i++) args.push(arguments[i]);
+        calls.push(args);
+      };
+    });
+
+    runCode({
+      gtmOnSuccess: () => {},
+      gtmOnFailure: () => {},
+      user_id: '8cf82c94-db1f-4884-b808-c09f0e32d26d',
+      advertiser: 'amazingbrand123',
+      event_type: 'purchase',
+      custom_params: [
+        { name: '', value: 'orphan' },
+        { name: 'good', value: 'kept' }
+      ]
+    });
+
+    const p = calls[1][1];
+    assertThat(p.good).isEqualTo('kept');
+    assertThat(p['']).isEqualTo(undefined);
+
 setup: |-
   if (typeof mock === 'function') {
     mock('injectScript', (url, onSuccess) => { onSuccess(); });
